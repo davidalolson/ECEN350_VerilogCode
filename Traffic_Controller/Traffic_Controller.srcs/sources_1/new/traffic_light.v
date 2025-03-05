@@ -8,6 +8,15 @@ module traffic_light(clk, tl_main, tl_center);
     
     reg [2:0] next_tl_main;
     reg [2:0] next_tl_center;
+
+    // counter register (adjust as needed to
+    // provide differnt delays
+    reg [4:0] timer;
+    parameter duration1 = 5'b01111; // 15s between 0  and 15
+    parameter duration2 = 5'b10010; // 3s  between 15 and 18
+    parameter duration3 = 5'b11100; // 10s between 18 and 28
+    parameter duration4 = 5'b11111; // 3s  between 28 and 31
+    
     
     always@*
     begin
@@ -30,11 +39,24 @@ module traffic_light(clk, tl_main, tl_center);
     
     always@(posedge clk)
     begin
-//        if(timer == 1)
-        begin
-            tl_main   <= next_tl_main;
-            tl_center <= next_tl_center;
-        end
+        // We need to use a five bit counter for the 31 seconds of operation
+        // since 31 in binary is 1111 1.
+        // counter state + update machine
+        // 0 1111        | Main
+        // 1 0010        | Main & Center
+        // 1 1100        | Center
+        // 1 1111        | Main & Center
+
+        // Increment counter (timer) every rising edge
+        timer <= timer + 1;
+
+        case(timer)
+            duration1: tl_main   <= next_tl_main; // Just update main
+            duration2: // need to update both
+            duration3: tl_center <= next_tl_center; // Just update center
+            duration4: // need to update both
+            default:   // do nothing
+        endcase
                  
     end
     
