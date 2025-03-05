@@ -51,12 +51,29 @@ module traffic_light(clk, tl_main, tl_center);
         timer <= timer + 1;
 
         case(timer)
+            
             duration1: tl_main   <= next_tl_main; // Just update main
-            duration2: // need to update both
+           
+            duration2: begin
+   
+                tl_main   <= next_tl_main; // Update both
+                tl_center <= next_tl_center;
+            
+            end
+            
             duration3: tl_center <= next_tl_center; // Just update center
-            duration4: // need to update both
-            default:   // do nothing
+            
+            duration4: begin 
+            
+                tl_main   <= next_tl_main; // Update both
+                tl_center <= next_tl_center;
+                
+            end
+            
+            default: ; // Do nothing
+        
         endcase
+       
                  
     end
     
