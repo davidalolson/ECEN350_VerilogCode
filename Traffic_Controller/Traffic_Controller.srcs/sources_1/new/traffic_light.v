@@ -1,17 +1,19 @@
 `timescale 1ns / 1ps
 
-module traffic_light(clk, tl_main, tl_center);
+module traffic_light(clk, tl_main, tl_center);//, cw_main, cw_center);
     input clk;
     
-    output reg [2:0] tl_main = 3'b100;
-    output reg [2:0] tl_center = 3'b001;
+    output reg [2:0] tl_main = 3'b001; // Green
+    output reg [2:0] tl_center = 3'b100; // Red
+//    output cw_main   = ;
+//    output cw_center = ;
     
     reg [2:0] next_tl_main;
     reg [2:0] next_tl_center;
 
     // counter register (adjust as needed to
     // provide differnt delays
-    reg [4:0] timer;
+    reg [4:0] timer = 0;
     parameter duration1 = 5'b01111; // 15s between 0  and 15
     parameter duration2 = 5'b10010; // 3s  between 15 and 18
     parameter duration3 = 5'b11100; // 10s between 18 and 28
@@ -25,7 +27,7 @@ module traffic_light(clk, tl_main, tl_center);
            3'b010: next_tl_main = 3'b100;
            3'b100: next_tl_main = 3'b001;
            
-           default next_tl_main = 3'b001; 
+           default next_tl_main = 3'b100; 
        endcase 
        
        case(tl_center)
