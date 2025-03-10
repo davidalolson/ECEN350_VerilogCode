@@ -1,8 +1,0 @@
-0.7
-2020.2
-May 22 2024
-19:03:11
-C:/Users/david0/Documents/GitHub/ECEN350_VerilogCode/Traffic_Controller/Traffic_Controller.sim/sim_1/behav/xsim/glbl.v,1708598507,verilog,,,,glbl,,,,,,,,
-C:/Users/david0/Documents/GitHub/ECEN350_VerilogCode/Traffic_Controller/Traffic_Controller.srcs/sources_1/new/clock_div.v,1741125461,verilog,,C:/Users/david0/Documents/GitHub/ECEN350_VerilogCode/Traffic_Controller/Traffic_Controller.srcs/sources_1/new/traffic_light.v,,clk_gen,,,,,,,,
-C:/Users/david0/Documents/GitHub/ECEN350_VerilogCode/Traffic_Controller/Traffic_Controller.srcs/sources_1/new/traffic_light.v,1741212493,verilog,,C:/Users/david0/Documents/GitHub/ECEN350_VerilogCode/Traffic_Controller/Traffic_Controller.srcs/sources_1/new/traffic_light_top.v,,traffic_light,,,,,,,,
-C:/Users/david0/Documents/GitHub/ECEN350_VerilogCode/Traffic_Controller/Traffic_Controller.srcs/sources_1/new/traffic_light_top.v,1741212854,verilog,,,,traffic_light_top,,,,,,,,
