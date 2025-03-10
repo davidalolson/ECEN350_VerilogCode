@@ -80,3 +80,5 @@ module traffic_light(clk, tl_main, tl_center);//, cw_main, cw_center);
     end
     
 endmodule
+
+

@@ -12,3 +12,4 @@ module traffic_light_top(
     traffic_light U2 (.clk(clkd), .tl_main(led[2:0]), .tl_center(led[5:3]));
     
 endmodule
+//
