@@ -3,9 +3,9 @@
 // Company: 
 // Engineer: 
 // 
-// Create Date: 10/30/2016 11:04:56 PM
+// Create Date: 11/01/2016 01:36:54 PM
 // Design Name: 
-// Module Name: btn_debounce
+// Module Name: debounce_div
 // Project Name: 
 // Target Devices: 
 // Tool Versions: 
@@ -20,15 +20,17 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module btn_debounce(
+module debounce_div(
     input clk,
-    input btn_in,
-    output wire btn_status
+    output clk_deb
     );
-    reg [19:0] btn_shift;
-        
-    always @ (posedge clk)
-        btn_shift <= {btn_shift[18:0], btn_in};
+    reg [15:0] cnt;
+
     
-    assign btn_status = &btn_shift;
+    assign clk_deb = cnt[15];
+    
+    initial cnt = 0;
+    always @(posedge clk)
+        cnt <= cnt + 1;
+        
 endmodule

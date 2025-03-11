@@ -15,4 +15,3 @@ module memory(
     if (we) mem[addr] <= data; 
   end 
 endmodule 
-
