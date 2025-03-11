@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module sseg_x4_top(input [15:0] sw, btnC, clk, output [6:0] seg, [3:0] an, dp, [4:0] JA);
+module sseg_x4_top(input [15:0] sw, btnC, clk, output [6:0] seg, [3:0] an, dp);
 
     // Each hexadecimal number can be represented
     // in four bits. Therefore, a four-bit bus is
@@ -25,7 +25,5 @@ module sseg_x4_top(input [15:0] sw, btnC, clk, output [6:0] seg, [3:0] an, dp, [
     // Map the hexadecimal digits to the displays
     sseg_encoder U4 (.hex(hex_num), .seg(seg), .dp(dp));
    
-    // Output signals to be viewed on an oscilloscope
-    assign JA = {clkd, an};
        
 endmodule
