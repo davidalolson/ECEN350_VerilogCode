@@ -27,3 +27,13 @@ addrcont/addr_reg[0]/C	OM/mem_reg_0_15_4_4/SP/I
 addrcont/addr_reg[0]/C	OM/mem_reg_0_15_3_3/SP/I
 addrcont/addr_reg[0]/C	OM/mem_reg_0_15_2_2/SP/I
 addrcont/addr_reg[0]/C	OM/mem_reg_0_15_1_1/SP/I
+
+PIPELINE MULTIPLIER
+Worst Negative Slask (WNS): 5.145ns
+
+4 Longest Paths:
+From	To
+addrcont/addr_reg[1]/C	IM/mem_reg_0_15_13_13/SP/I
+addrcont/addr_reg[1]/C	IM/mem_reg_0_15_12_12/SP/I
+addrcont/addr_reg[1]/C	IM/mem_reg_0_15_0_0/SP/I
+addrcont/addr_reg[1]/C	IM/mem_reg_0_15_15_15/SP/I
