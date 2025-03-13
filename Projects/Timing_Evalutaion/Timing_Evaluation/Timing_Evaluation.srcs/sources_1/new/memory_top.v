@@ -42,6 +42,7 @@ module memory_top(
     wire left, center, right, up, down;  // debounced buttons
     wire [3:0] addr;                     // address for the input and output memories
  
+//    multiplier MU (.sw({Ibus_data,Obus_data}), .clk(clk), .led(op_data));
     sseg_x4_top disp (.clk(clk), .btnC(1'b0), .sw(disp_data), .seg(seg), .an(an), .dp(dp));
     memory IM (.we(WE_IM), .oe(OE_IM), .clk(clk), .data(Ibus_data), .addr(addr));
     memory OM (.we(WE_OM), .oe(OE_OM), .clk(clk), .data(Obus_data), .addr(addr));
