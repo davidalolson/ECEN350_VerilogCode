@@ -2,8 +2,8 @@
 module p_sprite
 	(
 		input wire clk,
-		input wire [3:0] row,
-		input wire [3:0] col,
+		input wire [2:0] row,
+		input wire [2:0] col,
 		output reg [11:0] pixel_data
 	);
 
