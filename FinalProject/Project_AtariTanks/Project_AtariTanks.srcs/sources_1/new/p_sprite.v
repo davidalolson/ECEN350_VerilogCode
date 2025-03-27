@@ -15,7 +15,7 @@ module p_sprite
 	
 	// Parameter
 	parameter mono_c  = 12'hF00;
-	parameter blank = 12'b0;
+	parameter blank = 12'h0F0;
 
 	always @(posedge clk)
 	    begin

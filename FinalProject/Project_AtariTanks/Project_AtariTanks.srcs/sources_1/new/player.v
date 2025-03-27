@@ -2,9 +2,7 @@
 
 module player(
     input wire clk,
-    
-    input wire [9:0] x_in,
-    input wire [9:0] y_in,
+    input wire [9:0] x_in, y_in,
     
     output reg [11:0] image_out
     );
@@ -47,7 +45,7 @@ module player(
             (y_in >= y_pos - SIZE/2) && (y_in < y_pos + SIZE/2)) begin
             image_out <= pixel_data; // Output sprite pixel color
         end else begin
-            image_out <= 12'h000; // Set to black (background)
+            image_out <= 12'h00F; // Set to black (background)
         end
     end
     
