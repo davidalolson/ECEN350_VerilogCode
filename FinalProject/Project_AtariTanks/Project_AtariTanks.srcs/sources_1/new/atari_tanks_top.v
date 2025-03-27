@@ -7,8 +7,8 @@ module atari_tanks_top(
 		output wire [11:0] rgb
     );
     
-    wire [9:0] x, y;        // VGA coordinates (typically 10-bit for 640x480)
-    wire [11:0] p1_image;   // RGB output from the player
+    // This wire is the compilation of the entire display (px by px)
+    wire [11:0] rgb_out = 12'b0; // RGB output
     
     // Video status output from vga_sync to tell when to route out rgb signal to DAC
     wire video_on; 
@@ -20,7 +20,11 @@ module atari_tanks_top(
     // Instantiate a player
     player player1_unit (.clk(clk), .x_in(x), .y_in(y), .image_out(p1_image));
     
+    // Create a single concurrent image based on the compilation of all the image data presented
+    assign rgb_out = p1_image | rgb_out;
+    
+    
     // Write to display
-    assign rgb = (video_on)? p1_image : 12'b111111111111;
+    assign rgb = (video_on)? rgb_out : 12'b0;
                                
 endmodule
