@@ -6,13 +6,12 @@ module player(
     input wire [9:0] x_in,
     input wire [9:0] y_in,
     
-    output wire [11:0] image_out
+    output reg [11:0] image_out
     );
 
-    wire [11:0] image; // Declare image to store sprite pixel data
-
     // Graphics support
-    reg [5:0] scan_image;
+    reg [2:0] sprite_row;
+    reg [2:0] sprite_col;
     
     // Positional defaults
     parameter X_START = 320;
@@ -26,7 +25,7 @@ module player(
 	parameter SIZE = 8; // 8X8  
     
     // Instance sprite graphics data
-    p_sprite p_sprite_unit (.clk(clk), .row(scan_image[5:3]), .col(scan_image[2:0]), .pixel_data(image));
+    p_sprite p_sprite_unit (.clk(clk), .row(sprite_row), .col(sprite_col), .pixel_data(pixel_data));
     
     // Instance controller data
     // controller controller_unit (.clk(clk), .sw(), .button_presses(buttons));
@@ -36,17 +35,17 @@ module player(
     // to print the sprite to the diplay.
     // This may require two loops, one for the height of
     // the sprite and another for the width.
-    always@(posedge clk)
-    begin  
-        // Increment the scan of the rows and columns of the sprite
-        scan_image <= scan_image + 1;
+    always@(posedge clk) 
+    // Define sprite position on screen
+        if ((x_in >= x_pos - SIZE/2) && (x_in < x_pos + SIZE/2) && (y_in >= y_pos - SIZE/2) && (y_in < y_pos + SIZE/2)) begin
+            sprite_row = y_in - (y_pos - SIZE/2); // Map screen y to sprite row
+            sprite_col = x_in - (x_pos - SIZE/2); // Map screen x to sprite column
+            image_out = pixel_data[sprite_row * SIZE + sprite_col]; // Output sprite pixel color
+        end else begin
+            image_out = 12'h000;
+        end
                 
-    end
-    
-    // Output the image when within the aspect ratio
-    assign image_out = ((x_in >= x_pos - SIZE/2) && (x_in < x_pos + SIZE/2) &&
-                    (y_in >= y_pos - SIZE/2) && (y_in < y_pos + SIZE/2)) 
-                   ? 12'b111100000000 : 12'b111111110000;
+  
         
     
     // Properties
