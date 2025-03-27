@@ -12,6 +12,7 @@ module player(
     // Graphics support
     reg [2:0] sprite_row;
     reg [2:0] sprite_col;
+    wire [11:0] pixel_data;
     
     // Positional defaults
     parameter X_START = 320;
@@ -35,18 +36,20 @@ module player(
     // to print the sprite to the diplay.
     // This may require two loops, one for the height of
     // the sprite and another for the width.
-    always@(posedge clk) 
-    // Define sprite position on screen
-        if ((x_in >= x_pos - SIZE/2) && (x_in < x_pos + SIZE/2) && (y_in >= y_pos - SIZE/2) && (y_in < y_pos + SIZE/2)) begin
-            sprite_row = y_in - (y_pos - SIZE/2); // Map screen y to sprite row
-            sprite_col = x_in - (x_pos - SIZE/2); // Map screen x to sprite column
-            image_out = pixel_data[sprite_row * SIZE + sprite_col]; // Output sprite pixel color
-        end else begin
-            image_out = 12'h000;
-        end
-                
-  
+    
+    always @(posedge clk) begin
+        // Map screen coordinates to sprite row/column
+        sprite_row <= y_in - (y_pos - SIZE/2); // Map screen y to sprite row
+        sprite_col <= x_in - (x_pos - SIZE/2); // Map screen x to sprite column
         
+        // Check if the pixel is within the sprite's bounds and output the pixel data
+        if ((x_in >= x_pos - SIZE/2) && (x_in < x_pos + SIZE/2) &&
+            (y_in >= y_pos - SIZE/2) && (y_in < y_pos + SIZE/2)) begin
+            image_out <= pixel_data; // Output sprite pixel color
+        end else begin
+            image_out <= 12'h000; // Set to black (background)
+        end
+    end
     
     // Properties
     // This section includes attributes such as current health
