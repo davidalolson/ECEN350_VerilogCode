@@ -20,7 +20,7 @@ module p_sprite
 	always @(posedge clk)
 	    begin
 		row_reg <= row;
-		col_reg <= row;
+		col_reg <= col;
 		end
 
 	always @*
@@ -94,4 +94,3 @@ module p_sprite
 endmodule
 
 // Credit: Poketronics
-
