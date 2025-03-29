@@ -20,14 +20,29 @@ module p_sprite
     always@(posedge clk)
     begin
     
-    if(sel_sprite == 2'b00)
-        pixel_data <= fwd_px_data;
-    else if(sel_sprite == 2'b01)
-        pixel_data <= ffv_px_data;
-    else if(sel_sprite == 2'b10)
-        pixel_data <= ttv_px_data;
-    else
-        pixel_data <= 12'hF00; // fault
+    // Frame handeler
+    case (sel_sprite)
+    
+        4'b0000: pixel_data <= fwd_px_data; // 0
+        4'b0001: pixel_data <= ttv_px_data; // 30
+        4'b0010: pixel_data <= ffv_px_data; // 45
+        4'b0011: pixel_data <= ttv_px_data; // 60
+        4'b0100: pixel_data <= fwd_px_data; // 90
+        4'b0101: pixel_data <= ttv_px_data; // 120
+        4'b0110: pixel_data <= ffv_px_data; // 135
+        4'b0111: pixel_data <= ttv_px_data; // 150
+        4'b1000: pixel_data <= fwd_px_data; // 180
+        4'b1001: pixel_data <= ttv_px_data; // 210
+        4'b1010: pixel_data <= ffv_px_data; // 225
+        4'b1011: pixel_data <= ttv_px_data; // 240
+        4'b1100: pixel_data <= fwd_px_data; // 270
+        4'b1101: pixel_data <= ttv_px_data; // 300
+        4'b1110: pixel_data <= ffv_px_data; // 315
+        4'b1111: pixel_data <= ttv_px_data; // 330
+    
+        default: pixel_data <= fwd_px_data;
+    endcase
+    
     end
     
 endmodule

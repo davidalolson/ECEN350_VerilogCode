@@ -2,7 +2,7 @@
 
 module atari_tanks_top(
 		input wire clk, reset,
-		input wire [11:0] sw,
+		input wire [4:0] JA,
 		output wire hsync, vsync,
 		output wire [11:0] rgb
     );
@@ -20,7 +20,7 @@ module atari_tanks_top(
                             .video_on(video_on), .p_tick(), .x(x), .y(y));
                             
     // Instantiate a player
-    player player1_unit (.clk(clk), .reset(reset), .x_in(x), .y_in(y), .sw(sw), .image_out(p1_image));
+    player player1_unit (.clk(clk), .reset(reset), .x_in(x), .y_in(y), .ja_pins(JA), .image_out(p1_image));
     
     // Create a single concurrent image based on the compilation of all the image data presented
     

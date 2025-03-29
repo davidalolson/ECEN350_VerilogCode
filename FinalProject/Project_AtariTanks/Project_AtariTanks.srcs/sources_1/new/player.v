@@ -34,10 +34,10 @@ module player(
     wire ccw;
     reg [3:0] face;
     reg [3:0] speed = 0; // Initialize to zero
-    signed reg direction = 0;
+    reg direction = 0;
     
     // Instance controller data
-    controller controller_unit (.clk(clk), .reset(reset), .pin(ja_pins[5:0]), .buttons(btn), .re_clockwire(cw), .re_counterclock(ccw));
+    controller controller_unit (.clk(clk), .reset(reset), .pin(ja_pins[5:0]), .buttons(btn), .re_clockwise(cw), .re_counterclock(ccw));
     
     // Instance sprite graphics data
     p_sprite p_sprite_unit (.clk(clk), .row(sprite_row), .col(sprite_col), .pixel_data(pixel_data), .sel_sprite(face));
@@ -74,7 +74,7 @@ module player(
     //  - Collisions
     //  - Status
     
-always@(posedge clk, posedge reset, negedge btn, negedge cw, negedge ccw)
+always@(posedge clk, posedge reset)
     begin
         if(reset)
         begin
@@ -96,16 +96,16 @@ always@(posedge clk, posedge reset, negedge btn, negedge cw, negedge ccw)
             
             // Get signals from buttons
             if(btn[0])
-                direction <= 1;
+                direction <= 0;
             else if (btn[1])
-                direction <= -1;
+                direction <= 1;
             else
                 direction <= direction;
             
-            if(btn[0] || btn[1])
-                speed <= 4;
-            else
+            if(btn[0] && btn[1])
                 speed <= 0;
+            else
+                speed <= 4;
             
             //DIR   BIN   HEX  DESC       FUNC  FRAME MOD
             //0     0000  4'h0 RIGHT      ++X   fwd   3R
@@ -138,54 +138,54 @@ always@(posedge clk, posedge reset, negedge btn, negedge cw, negedge ccw)
             // the tank will move forward or backward using the direction
             // variable. Face determines what angle the tank faces on the
             // display.
-            if(btn[0] || btn[1] || cw || ccw)
+            if((btn[0] || btn[1] || cw || ccw) && (clk_divider % CLK_DIV == 0))
             begin
                 case (face)
-                    4'b0000: x_pos <= x_pos + speed * direction;               // 0
+                    4'b0000: x_pos <= direction? x_pos + speed : x_pos - speed;                     // 0
                     
-                    4'b0001: begin x_pos <= x_pos + speed * direction;         // 30
-                                   y_pos <= y_pos - (speed/2) * direction; end
+                    4'b0001: begin x_pos <= direction? x_pos + speed : x_pos - speed;               // 30
+                                   y_pos <= direction? y_pos - (speed/2) : y_pos + (speed/2); end
                                    
-                    4'b0010: begin x_pos <= x_pos + speed * direction;         // 45
-                                   y_pos <= y_pos - speed * direction; end
+                    4'b0010: begin x_pos <= direction? x_pos + speed : x_pos - speed;               // 45
+                                   y_pos <= direction? y_pos - speed : y_pos + speed; end
                              
-                    4'b0011: begin x_pos <= x_pos + (speed/2) * direction;     // 60
-                                   y_pos <= y_pos - speed * direction; end
+                    4'b0011: begin x_pos <= direction? x_pos + (speed/2) : x_pos - (speed/2);       // 60
+                                   y_pos <= direction? y_pos - speed : y_pos + speed; end
                                    
-                    4'b0100: y_pos <= y_pos - speed * direction;               // 90
+                    4'b0100: y_pos <= direction? y_pos - speed : y_pos + speed;                     // 90
                     
-                    4'b0101: begin x_pos <= x_pos - speed * direction;         // 120
-                                   y_pos <= y_pos - (speed/2) * direction; end
+                    4'b0101: begin x_pos <= direction? x_pos - speed : x_pos + speed;               // 120
+                                   y_pos <= direction? y_pos - (speed/2) : y_pos + (speed/2); end
                                    
-                    4'b0110: begin x_pos <= x_pos - speed * direction;         // 135
-                                   y_pos <= y_pos - speed * direction; end
+                    4'b0110: begin x_pos <= direction? x_pos - speed : x_pos + speed;               // 135
+                                   y_pos <= direction? y_pos - speed : y_pos + speed; end
                                    
-                    4'b0111: begin x_pos <= x_pos - (speed/2) * direction;     // 150
-                                   y_pos <= y_pos - speed * direction; end
+                    4'b0111: begin x_pos <= direction? x_pos - (speed/2) : x_pos + (speed/2);       // 150
+                                   y_pos <= direction? y_pos - speed : y_pos + speed; end
                                    
-                    4'b1000: x_pos <= x_pos - speed * direction;               // 180
+                    4'b1000: x_pos <= direction? x_pos - speed : x_pos + speed;                     // 180
                     
-                    4'b1001: begin x_pos <= x_pos - speed * direction;         // 210
-                                   y_pos <= y_pos + (speed/2) * direction; end
+                    4'b1001: begin x_pos <= direction? x_pos - speed : x_pos + speed;               // 210
+                                   y_pos <= direction? y_pos + (speed/2) : y_pos - (speed/2); end
                     
-                    4'b1010: begin x_pos <= x_pos - speed * direction;         // 225
-                                   y_pos <= y_pos + speed * direction; end
+                    4'b1010: begin x_pos <= direction? x_pos - speed : x_pos + speed;               // 225
+                                   y_pos <= direction? y_pos + speed : y_pos + speed; end
                                    
-                    4'b1011: begin x_pos <= x_pos - (speed/2) * direction;     // 240
-                                   y_pos <= y_pos + speed * direction; end
+                    4'b1011: begin x_pos <= direction? x_pos - (speed/2) : x_pos + (speed/2);       // 240
+                                   y_pos <= direction? y_pos + speed : y_pos - speed; end
                     
-                    4'b1100: y_pos <= y_pos + speed * direction;               // 270     
+                    4'b1100: y_pos <= direction? y_pos + speed : y_pos - speed;                     // 270     
                     
-                    4'b1101: x_pos <= x_pos + (speed/2) * direction;           // 300
-                                   y_pos <= y_pos + speed * direction; end
+                    4'b1101: begin x_pos <= x_pos + (speed/2) * direction;                          // 300
+                             y_pos <= y_pos + speed * direction; end
                     
-                    4'b1110: begin x_pos <= x_pos + speed * direction;         // 315
-                                   y_pos <= y_pos + speed * direction; end
+                    4'b1110: begin x_pos <= direction? x_pos + speed : x_pos - speed;               // 315
+                                   y_pos <= direction? y_pos + speed : y_pos - speed; end
                                    
-                    4'b1111: x_pos <= x_pos + speed * direction;               // 330
-                                   y_pos <= y_pos + (speed/2) * direction; end
+                    4'b1111: begin x_pos <= direction? x_pos + speed : x_pos - speed;               // 330
+                                   y_pos <= direction? y_pos + (speed/2) : y_pos - (speed/2); end
                     
-                    default ;; // Do nothing
+                    default: ; // Do nothing
                 endcase
             end
             
