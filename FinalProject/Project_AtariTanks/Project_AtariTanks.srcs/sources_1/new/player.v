@@ -25,14 +25,14 @@ module player(
 	parameter SIZE = 32; // 8X8  
     
     // Movement speed varaible
-    parameter CLK_DIV = 1000000;
+    parameter CLK_DIV = 10000000;
     reg [31:0] clk_divider = 0;
     
     // Controller connections
     wire [2:0] btn;
     wire cw;
     wire ccw;
-    reg [3:0] face;
+    reg [3:0] face = 1;
     reg [3:0] speed = 0; // Initialize to zero
     reg direction = 0;
     
@@ -169,15 +169,15 @@ always@(posedge clk, posedge reset)
                                    y_pos <= direction? y_pos + (speed/2) : y_pos - (speed/2); end
                     
                     4'b1010: begin x_pos <= direction? x_pos - speed : x_pos + speed;               // 225
-                                   y_pos <= direction? y_pos + speed : y_pos + speed; end
+                                   y_pos <= direction? y_pos + speed : y_pos - speed; end
                                    
                     4'b1011: begin x_pos <= direction? x_pos - (speed/2) : x_pos + (speed/2);       // 240
                                    y_pos <= direction? y_pos + speed : y_pos - speed; end
                     
                     4'b1100: y_pos <= direction? y_pos + speed : y_pos - speed;                     // 270     
                     
-                    4'b1101: begin x_pos <= x_pos + (speed/2) * direction;                          // 300
-                             y_pos <= y_pos + speed * direction; end
+                    4'b1101: begin x_pos <= direction? x_pos + (speed/2) : x_pos - (speed/2);       // 300
+                                   y_pos <= direction? y_pos + speed : y_pos - speed; end
                     
                     4'b1110: begin x_pos <= direction? x_pos + speed : x_pos - speed;               // 315
                                    y_pos <= direction? y_pos + speed : y_pos - speed; end

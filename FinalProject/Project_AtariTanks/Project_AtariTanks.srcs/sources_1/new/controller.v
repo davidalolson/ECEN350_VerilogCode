@@ -34,7 +34,7 @@ module controller(
                     re_counterclock <= 1;
                 end
             end else begin
-                re_clockwise    <= 0;  // Reset indicators when idle
+                re_clockwise    <= 0;  // Reset indicator when idle
                 re_counterclock <= 0;
             end
             
