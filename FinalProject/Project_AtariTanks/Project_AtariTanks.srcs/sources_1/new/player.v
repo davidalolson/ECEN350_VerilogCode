@@ -3,7 +3,7 @@
 module player(
     input wire clk, reset,
     input wire [9:0] x_in, y_in,
-    input wire [11:0] sw,
+    input wire [5:0] ja_pins,
     
     output reg [11:0] image_out
     );
@@ -27,13 +27,21 @@ module player(
     // Movement speed varaible
     parameter CLK_DIV = 1000000;
     reg [31:0] clk_divider = 0;
-
     
-    // Instance sprite graphics data
-    p_sprite p_sprite_unit (.clk(clk), .row(sprite_row), .col(sprite_col), .pixel_data(pixel_data), .sel_sprite({sw[4],sw[5]}));
+    // Controller connections
+    wire [2:0] btn;
+    wire cw;
+    wire ccw;
+    reg [3:0] face;
+    reg [3:0] speed = 0; // Initialize to zero
+    signed reg direction = 0;
     
     // Instance controller data
-    // controller controller_unit (.clk(clk), .sw(), .button_presses(buttons));
+    controller controller_unit (.clk(clk), .reset(reset), .pin(ja_pins[5:0]), .buttons(btn), .re_clockwire(cw), .re_counterclock(ccw));
+    
+    // Instance sprite graphics data
+    p_sprite p_sprite_unit (.clk(clk), .row(sprite_row), .col(sprite_col), .pixel_data(pixel_data), .sel_sprite(face));
+    
     
     // Draw sprite
     // Create a counter that cycles through the sprite rom
@@ -66,7 +74,7 @@ module player(
     //  - Collisions
     //  - Status
     
-always@(posedge clk, posedge reset)
+always@(posedge clk, posedge reset, negedge btn, negedge cw, negedge ccw)
     begin
         if(reset)
         begin
@@ -76,14 +84,111 @@ always@(posedge clk, posedge reset)
         end
         else begin
         
-            clk_divider <= clk_divider + 1;
+            clk_divider <= clk_divider + 1; // Fix the speed of the sprite
             
-            if (clk_divider % CLK_DIV == 0) begin
-                if (sw[0] && x_pos < 640 - SIZE) x_pos <= x_pos + 1; // Move Right
-                if (sw[1] && x_pos > SIZE)       x_pos <= x_pos - 1; // Move Left
-                if (sw[2] && y_pos < 480 - SIZE) y_pos <= y_pos + 1; // Move Down
-                if (sw[3] && y_pos > SIZE)       y_pos <= y_pos - 1; // Move Up
+            // Get signals from rotary encoder
+            if(cw)
+                face <= face + 1;
+            else if (ccw)
+                face <= face - 1;
+            else
+                face <= face;
+            
+            // Get signals from buttons
+            if(btn[0])
+                direction <= 1;
+            else if (btn[1])
+                direction <= -1;
+            else
+                direction <= direction;
+            
+            if(btn[0] || btn[1])
+                speed <= 4;
+            else
+                speed <= 0;
+            
+            //DIR   BIN   HEX  DESC       FUNC  FRAME MOD
+            //0     0000  4'h0 RIGHT      ++X   fwd   3R
+            //
+            //30    0001  4'h1 UP RIGHT   -Y++X ttv   3R
+            //45  - 0010  4'h2 UP RIGHT   -Y+X  ffv   3R
+            //60    0011  4'h3 UP RIGHT   --Y+X ttv   3R & FLIP_X
+            //
+            //90    0100  4'h4 UP         --Y   fwd   
+            //
+            //120   0101  4'h5 UP LEFT    --Y-X ttv
+            //135 - 0110  4'h6 UP LEFT    -Y-X  ffv
+            //150   0111  4'h7 UP LEFT    -Y--X ttv   FLIP_X  
+            //
+            //180   1000  4'h8 LEFT       --X   fwd   R
+            //
+            //210   1001  4'h9 DOWN LEFT  +Y--X ttv   R
+            //225 - 1010  4'hA DOWN LEFT  +Y-X  ffv   R
+            //240   1011  4'hB DOWN LEFT  ++Y-X ttv   R & FLIP_X
+            //
+            //270   1100  4'hC DOWN       ++Y   fwd   2R
+            //
+            //300   1101  4'hD DOWN RIGHT ++Y+X ttv   2R
+            //315 - 1110  4'hE DOWN RIGHT +Y+X  ffv   2R
+            //330   1111  4'hF DOWN RIGHT +Y++X ttv   2R & FLIP_X
+            
+            // If recieved a movement signal
+            // When the buttons are not being pressed, speed is zero
+            // so that the sprite can rotate in place. Otherwise, 
+            // the tank will move forward or backward using the direction
+            // variable. Face determines what angle the tank faces on the
+            // display.
+            if(btn[0] || btn[1] || cw || ccw)
+            begin
+                case (face)
+                    4'b0000: x_pos <= x_pos + speed * direction;               // 0
+                    
+                    4'b0001: begin x_pos <= x_pos + speed * direction;         // 30
+                                   y_pos <= y_pos - (speed/2) * direction; end
+                                   
+                    4'b0010: begin x_pos <= x_pos + speed * direction;         // 45
+                                   y_pos <= y_pos - speed * direction; end
+                             
+                    4'b0011: begin x_pos <= x_pos + (speed/2) * direction;     // 60
+                                   y_pos <= y_pos - speed * direction; end
+                                   
+                    4'b0100: y_pos <= y_pos - speed * direction;               // 90
+                    
+                    4'b0101: begin x_pos <= x_pos - speed * direction;         // 120
+                                   y_pos <= y_pos - (speed/2) * direction; end
+                                   
+                    4'b0110: begin x_pos <= x_pos - speed * direction;         // 135
+                                   y_pos <= y_pos - speed * direction; end
+                                   
+                    4'b0111: begin x_pos <= x_pos - (speed/2) * direction;     // 150
+                                   y_pos <= y_pos - speed * direction; end
+                                   
+                    4'b1000: x_pos <= x_pos - speed * direction;               // 180
+                    
+                    4'b1001: begin x_pos <= x_pos - speed * direction;         // 210
+                                   y_pos <= y_pos + (speed/2) * direction; end
+                    
+                    4'b1010: begin x_pos <= x_pos - speed * direction;         // 225
+                                   y_pos <= y_pos + speed * direction; end
+                                   
+                    4'b1011: begin x_pos <= x_pos - (speed/2) * direction;     // 240
+                                   y_pos <= y_pos + speed * direction; end
+                    
+                    4'b1100: y_pos <= y_pos + speed * direction;               // 270     
+                    
+                    4'b1101: x_pos <= x_pos + (speed/2) * direction;           // 300
+                                   y_pos <= y_pos + speed * direction; end
+                    
+                    4'b1110: begin x_pos <= x_pos + speed * direction;         // 315
+                                   y_pos <= y_pos + speed * direction; end
+                                   
+                    4'b1111: x_pos <= x_pos + speed * direction;               // 330
+                                   y_pos <= y_pos + (speed/2) * direction; end
+                    
+                    default ;; // Do nothing
+                endcase
             end
+            
         end    
     end
     
