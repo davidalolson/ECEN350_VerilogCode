@@ -1,0 +1,70 @@
+projectile
+
+`timescale 1ns / 1ps
+
+module projectile(
+    input clk, reset,
+    input wire [3:0] face,      // The direction the sprite is facing (4-bit)
+    input wire fire,            // Fire button; signals the bullet to fire 
+    input wire [9:0] sprite_x, sprite_y,  // Player's position
+    output reg [9:0] bullet_x, bullet_y, // bullets position
+    output reg active,                  // indicates if the bullet is active or not 
+    output reg [1:0] bullet_dir         // the direction the bulllet is moving
+);
+
+    parameter SPEED = 2;  // Speed of bullet
+    parameter SCREEN_WIDTH = 640;
+    parameter SCREEN_HEIGHT = 480;
+    
+    always @(posedge clk) begin
+        if (reset) begin
+            active <= 0;
+            bullet_x <= 0;
+            bullet_y <= 0;
+            bullet_dir <= 2'b00;  // Default up direction
+        end
+        else if (fire && !active) begin
+            // Initialize projectile at player's position
+            bullet_x <= sprite_x;
+            bullet_y <= sprite_y;
+            case (face)
+            4'b0000: bullet_dir <= 2'b11; // 0° (Right)
+            4'b0001: begin bullet_dir <= 2'b11; bullet_y <= bullet_y - SPEED; end // 30° (Up-Right)
+            4'b0010: begin bullet_dir <= 2'b11; bullet_y <= bullet_y - SPEED; end // 45° (Up-Right)
+            4'b0011: begin bullet_dir <= 2'b11; bullet_y <= bullet_y - SPEED / 2; end // 60° (Up-Right)
+            4'b0100: bullet_dir <= 2'b00; // 90° (Up)
+            4'b0101: begin bullet_dir <= 2'b10; bullet_y <= bullet_y - SPEED / 2; end // 120° (Up-Left)
+            4'b0110: begin bullet_dir <= 2'b10; bullet_y <= bullet_y - SPEED; end // 135° (Up-Left)
+            4'b0111: begin bullet_dir <= 2'b10; bullet_y <= bullet_y - SPEED; end // 150° (Up-Left)
+            4'b1000: bullet_dir <= 2'b10; // 180° (Left)
+            4'b1001: begin bullet_dir <= 2'b10; bullet_y <= bullet_y + SPEED; end // 210° (Down-Left)
+            4'b1010: begin bullet_dir <= 2'b10; bullet_y <= bullet_y + SPEED; end // 225° (Down-Left)
+            4'b1011: begin bullet_dir <= 2'b10; bullet_y <= bullet_y + SPEED / 2; end // 240° (Down-Left)
+            4'b1100: bullet_dir <= 2'b01; // 270° (Down)
+            4'b1101: begin bullet_dir <= 2'b11; bullet_y <= bullet_y + SPEED / 2; end // 300° (Down-Right)
+            4'b1110: begin bullet_dir <= 2'b11; bullet_y <= bullet_y + SPEED; end // 315° (Down-Right)
+            4'b1111: begin bullet_dir <= 2'b11; bullet_y <= bullet_y + SPEED; end // 330° (Down-Right)
+            default: bullet_dir <= 2'b00; // Default (Up)
+            endcase
+            active <= 1;
+        end 
+        else if (active) begin
+            // Move projectile based on direction
+            case (bullet_dir)
+                2'b00: bullet_y <= bullet_y - SPEED; // Move up
+                2'b01: bullet_y <= bullet_y + SPEED; // Move down
+                2'b10: bullet_x <= bullet_x - SPEED; // Move left
+                2'b11: bullet_x <= bullet_x + SPEED; // Move right
+            endcase
+
+            // Deactivate when out of bounds
+            if (bullet_x <= 0 || bullet_x >= SCREEN_WIDTH || bullet_y <= 0 || bullet_y >= SCREEN_HEIGHT) begin
+                active <= 0; // Reset bullet
+            end
+        end
+    end
+
+endmodule
+
+
+
