@@ -3,10 +3,10 @@
 module player(
     input wire clk, reset,
     input wire [9:0] x_in, y_in,
-    input wire [5:0] ja_pins,
+    input wire [4:0] ja_pins,
     
-    output reg [11:0] image_out,
-    output reg [11:0] proj_out
+    output reg [11:0] image_out
+    //output reg [11:0] proj_out
     );
 
     // Graphics support
@@ -37,8 +37,12 @@ module player(
     reg [3:0] speed = 0; // Initialize to zero
     reg direction = 0;
     
+    wire [9:0] bullet_x, bullet_y;
+
+//    if pixel data 
+//    then rgb_out mono_c    
+
     // added projectile contolles 
-//    wire [9:0] bullet_x, bullet_y;
 //    wire [1:0] bullet_dir;
 //    wire active = 1;
 //    reg [2:0] bullet_row;
@@ -46,7 +50,7 @@ module player(
 //    reg [11:0] bullet_img_out;  // New variable for bullet image output
 
     // Instance controller data
-    controller controller_unit (.clk(clk), .reset(reset), .pin(ja_pins[5:0]), .buttons(btn), .re_clockwise(cw), .re_counterclock(ccw));
+    controller controller_unit (.clk(clk), .reset(reset), .pin(ja_pins[4:0]), .buttons(btn), .re_clockwise(cw), .re_counterclock(ccw));
     
     // Instance sprite graphics data
     p_sprite p_sprite_unit (.clk(clk), .row(sprite_row), .col(sprite_col), .pixel_data(pixel_data), .sel_sprite(face));
@@ -69,15 +73,11 @@ module player(
         if ((x_in > x_pos - SIZE/2) && (x_in < x_pos + SIZE/2) &&
             (y_in > y_pos - SIZE/2) && (y_in < y_pos + SIZE/2)) begin
             image_out <= pixel_data; // Output sprite pixel color
+        end else if ((x_in > bullet_x - SIZE/8) && (x_in < bullet_x + SIZE/8) &&
+            (y_in > bullet_y - SIZE/8) && (y_in < bullet_y + SIZE/8)) begin
+            image_out <= 12'hF00;
         end else begin
             image_out <= 12'h000; // Set to black (background)
-        end    
-        
-        if ((x_in > bullet_x - 4) && (x_in < bullet_x + 4) &&
-            (y_in > bullet_y - 4) && (y_in < bullet_y + 4)) begin
-            proj_out <= 12'hFFF;
-        end else begin
-            proj_out <= 12'hF00;
         end
     end
     

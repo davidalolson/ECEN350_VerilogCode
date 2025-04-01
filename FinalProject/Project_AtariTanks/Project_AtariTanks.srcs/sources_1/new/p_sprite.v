@@ -5,7 +5,7 @@ module p_sprite
 		input wire [2:0] row,
 		input wire [2:0] col,
 		input wire [3:0] sel_sprite,
-		output reg [11:0] pixel_data
+		output reg [11:0] pixel_data // 1 or 0
 	);
 	// Declare 12-bit buses for each sprite ROM output
     wire [11:0] sprite0_data;

@@ -10,11 +10,11 @@ module projectile(
 
     parameter SCREEN_WIDTH = 640;
     parameter SCREEN_HEIGHT = 480;
-    parameter CLK_DIV = 10000000;
+    parameter CLK_DIV = 1000000;
     parameter speed = 4; // Added missing speed definition
     
     reg fired = 0;
-    reg clk_divider = 0;
+    reg [31:0] clk_divider = 0;
     
     always @(posedge clk) begin
         if (reset) begin

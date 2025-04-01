@@ -14,8 +14,8 @@ module sprite120_rom(
 	reg [2:0] col_reg;
 	
 	// Parameter
-	parameter mono_c  = 12'hF00;
-	parameter blank = 12'h000;
+	parameter mono_c  = 12'hF00;   //1
+	parameter blank = 12'h000;     //0
 
 	always @(posedge clk)
 	    begin
