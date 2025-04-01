@@ -5,7 +5,8 @@ module player(
     input wire [9:0] x_in, y_in,
     input wire [5:0] ja_pins,
     
-    output reg [11:0] image_out
+    output reg [11:0] image_out,
+    output reg [11:0] proj_out
     );
 
     // Graphics support
@@ -36,12 +37,22 @@ module player(
     reg [3:0] speed = 0; // Initialize to zero
     reg direction = 0;
     
+    // added projectile contolles 
+//    wire [9:0] bullet_x, bullet_y;
+//    wire [1:0] bullet_dir;
+//    wire active = 1;
+//    reg [2:0] bullet_row;
+//    reg [2:0] bullet_col;
+//    reg [11:0] bullet_img_out;  // New variable for bullet image output
+
     // Instance controller data
     controller controller_unit (.clk(clk), .reset(reset), .pin(ja_pins[5:0]), .buttons(btn), .re_clockwise(cw), .re_counterclock(ccw));
     
     // Instance sprite graphics data
     p_sprite p_sprite_unit (.clk(clk), .row(sprite_row), .col(sprite_col), .pixel_data(pixel_data), .sel_sprite(face));
     
+   // Instantiate projectile
+    projectile projectile_unit (.clk(clk), .reset(reset), .face(face), .fire(btn[2]), .sprite_x(x_pos), .sprite_y(y_pos), .bullet_x(bullet_x), .bullet_y(bullet_y));
     
     // Draw sprite
     // Create a counter that cycles through the sprite rom
@@ -55,14 +66,51 @@ module player(
         sprite_col <= (x_in - (x_pos - SIZE/2)) >> 2; // Map screen x to sprite column
       
         // Check if the pixel is within the sprite's bounds and output the pixel data
-        if ((x_in >= x_pos - SIZE/2) && (x_in < x_pos + SIZE/2) &&
-            (y_in >= y_pos - SIZE/2) && (y_in < y_pos + SIZE/2)) begin
+        if ((x_in > x_pos - SIZE/2) && (x_in < x_pos + SIZE/2) &&
+            (y_in > y_pos - SIZE/2) && (y_in < y_pos + SIZE/2)) begin
             image_out <= pixel_data; // Output sprite pixel color
         end else begin
             image_out <= 12'h000; // Set to black (background)
-        end     
+        end    
+        
+        if ((x_in > bullet_x - 4) && (x_in < bullet_x + 4) &&
+            (y_in > bullet_y - 4) && (y_in < bullet_y + 4)) begin
+            proj_out <= 12'hFFF;
+        end else begin
+            proj_out <= 12'hF00;
+        end
     end
     
+    
+    
+//     always @(posedge clk) begin
+//    // Default to background (black)
+//    image_out <= 12'h000;  
+//    bullet_img_out <= 12'h000; 
+
+//    sprite_row <= 3'b000;
+//    sprite_col <= 3'b000;
+//    bullet_row <= 2'b00;  // Adjusted for 3x3 bullet
+//    bullet_col <= 2'b00;
+
+    // Player sprite mapping
+//    if ((x_in >= x_pos - SIZE/2) && (x_in < x_pos + SIZE/2) &&
+//        (y_in >= y_pos - SIZE/2) && (y_in < y_pos + SIZE/2)) begin
+//        sprite_row <= (y_in - (y_pos - SIZE/2)) >> 2;
+//        sprite_col <= (x_in - (x_pos - SIZE/2)) >> 2;
+//        image_out <= pixel_data;  
+//    end 
+    // Bullet display
+//    else if (active && (x_in >= bullet_x - 2) && (x_in < bullet_x + 2) &&
+//             (y_in >= bullet_y - 2) && (y_in < bullet_y + 2)) begin
+//        bullet_row <= (y_in - (bullet_y - 2)) >> 1;
+//        bullet_col <= (x_in - (bullet_x - 2)) >> 1;
+//        image_out <= bullet_img_out;  // Show bullet
+//    end
+//end
+
+
+
     // Properties
     // This section includes attributes such as current health
     // position 
@@ -154,14 +202,14 @@ always@(posedge clk, posedge reset)
                                    
                     4'b0100: y_pos <= direction? y_pos - speed : y_pos + speed;                     // 90
                     
-                    4'b0101: begin x_pos <= direction? x_pos - speed : x_pos + speed;               // 120
-                                   y_pos <= direction? y_pos - (speed/2) : y_pos + (speed/2); end
+                    4'b0101: begin x_pos <= direction? x_pos - (speed/2) : x_pos + (speed/2);               // 120
+                                   y_pos <= direction? y_pos - speed : y_pos + speed; end
                                    
                     4'b0110: begin x_pos <= direction? x_pos - speed : x_pos + speed;               // 135
                                    y_pos <= direction? y_pos - speed : y_pos + speed; end
                                    
-                    4'b0111: begin x_pos <= direction? x_pos - (speed/2) : x_pos + (speed/2);       // 150
-                                   y_pos <= direction? y_pos - speed : y_pos + speed; end
+                    4'b0111: begin x_pos <= direction? x_pos - speed : x_pos + speed;       // 150
+                                   y_pos <= direction? y_pos - (speed/2) : y_pos + (speed/2); end
                                    
                     4'b1000: x_pos <= direction? x_pos - speed : x_pos + speed;                     // 180
                     
@@ -192,7 +240,8 @@ always@(posedge clk, posedge reset)
         end    
     end
     
-    
+
+
     
     
 endmodule

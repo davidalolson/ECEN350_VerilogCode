@@ -20,7 +20,7 @@ module atari_tanks_top(
                             .video_on(video_on), .p_tick(), .x(x), .y(y));
                             
     // Instantiate a player
-    player player1_unit (.clk(clk), .reset(reset), .x_in(x), .y_in(y), .ja_pins(JA), .image_out(p1_image));
+    player player1_unit (.clk(clk), .reset(reset), .x_in(x), .y_in(y), .ja_pins(JA), .image_out(p1_image), .proj_out(p1_proj));
     
     // Create a single concurrent image based on the compilation of all the image data presented
     
@@ -30,7 +30,7 @@ module atari_tanks_top(
         if(reset)
             rgb_out <= 12'hF00;
         else
-            rgb_out <= p1_image;
+            rgb_out <= p1_image | p1_proj;
     end
     
     // Write to display

@@ -9,6 +9,7 @@ module controller(
     output reg re_counterclock
     );
     
+    
     // Handel up, down, and action (fire)
     assign buttons = pin[2:0];
     
