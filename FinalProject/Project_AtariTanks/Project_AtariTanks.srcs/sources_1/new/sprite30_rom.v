@@ -4,7 +4,7 @@ module sprite30_rom(
 		input wire clk,
 		input wire [2:0] row,
 		input wire [2:0] col,
-		output reg [11:0] pixel_data
+		output reg pixel_data
 	);
 
 	(* rom_style = "block" *)
@@ -14,8 +14,8 @@ module sprite30_rom(
 	reg [2:0] col_reg;
 	
 	// Parameter
-	parameter mono_c  = 12'hF00;
-	parameter blank = 12'h000;
+	parameter mono_c  = 1;
+	parameter blank = 0;
 
 	always @(posedge clk)
 	    begin

@@ -3,14 +3,25 @@
 module atari_tanks_top(
 		input wire clk, reset,
 		input wire [4:0] JA,
+		input wire [4:0] JB,
 		output wire hsync, vsync,
 		output wire [11:0] rgb
     );
+    
+    // Preferences
+    parameter BACKGROUND_COLOR = 12'h050;
+    parameter PLAYER1_COLOR = 12'hF00;
+    parameter PLAYER2_COLOR = 12'h0F0;
+    parameter P1_X_START_POS = 40;
+    parameter P1_Y_START_POS = 100;
+    parameter P2_X_START_POS = 600;
+    parameter P2_Y_START_POS = 380;
     
     // This wire is the compilation of the entire display (px by px)
     reg [11:0] rgb_out; // RGB output
     wire [9:0] x, y;
     wire [11:0] p1_image;
+    wire [11:0] p2_image;
     
     // Video status output from vga_sync to tell when to route out rgb signal to DAC
     wire video_on; 
@@ -20,9 +31,9 @@ module atari_tanks_top(
                             .video_on(video_on), .p_tick(), .x(x), .y(y));
                             
     // Instantiate a player
-    player player1_unit (.clk(clk), .reset(reset), .x_in(x), .y_in(y), .ja_pins(JA), .image_out(p1_image));
+    player #(.COLOR(PLAYER1_COLOR), .X_START(P1_X_START_POS), .Y_START(P1_Y_START_POS), .BLANK(BACKGROUND_COLOR)) player1_unit (.clk(clk), .reset(reset), .x_in(x), .y_in(y), .ja_pins(JA), .image_out(p1_image));
     
-    player player2_unit (.clk(clk), .reset(reset), .x_in(x), .y_in(y), .ja_pins(JA), .image_out(p2_image));
+    player #(.COLOR(PLAYER2_COLOR), .X_START(P2_X_START_POS), .Y_START(P2_Y_START_POS), .BLANK(BACKGROUND_COLOR)) player2_unit (.clk(clk), .reset(reset), .x_in(x), .y_in(y), .ja_pins(JB), .image_out(p2_image));
     
     // Create a single concurrent image based on the compilation of all the image data presented
     
@@ -30,12 +41,12 @@ module atari_tanks_top(
     always@(posedge clk, posedge reset)
     begin
         if(reset)
-            rgb_out <= 12'hF00;
+            rgb_out <= 12'h000; // Set to black
         else
-            rgb_out <= p1_image | p2_image;
+            rgb_out <= (p1_image != BACKGROUND_COLOR)? p1_image : p2_image;
     end
     
     // Write to display
-    assign rgb = (video_on)? rgb_out : 12'h000;
+    assign rgb = (video_on)? rgb_out : 12'h000; // Set to black
                                
 endmodule

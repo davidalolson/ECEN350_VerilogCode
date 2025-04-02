@@ -1,53 +1,62 @@
 `timescale 1ns / 1ps
 
-module player(
+    module player #(
+    
+    // Set sprite color
+    parameter COLOR = 12'hFFF,
+    
+    // Set background color
+    parameter BLANK = 12'h000,
+    
+    // Set sprite starting position
+    parameter X_START = 320,
+	parameter Y_START = 240,
+	
+    // Attributes - Sprite Dimentions 
+	parameter SIZE = 32, // 8X8  
+    
+    // Change this to change the movement drive
+    parameter MOV_DIV = 10000000,
+    
+    // How many pixels to move each time
+    parameter DRIVE_POWER = 4 // Leave this alone plz
+    
+    ) (
+    
+    // IO
     input wire clk, reset,
     input wire [9:0] x_in, y_in,
     input wire [4:0] ja_pins,
     
     output reg [11:0] image_out
-    //output reg [11:0] proj_out
+    
     );
 
-    // Graphics support
+    // Graphics streaming
     reg [2:0] sprite_row;
     reg [2:0] sprite_col;
-    wire [11:0] pixel_data;
     
-    // Positional defaults
-    parameter X_START = 320;
-	parameter Y_START = 240;
-	
-	// Attributes - Positional
-    reg [9:0] x_pos = X_START;
+    wire pixel_data; // Pixel data from ROMs
+    
+	// Track sprite position
+    reg [9:0] x_pos = X_START; // Get initial position from parameters
 	reg [9:0] y_pos = Y_START;
 	
-	// Attributes - Sprite Dimentions 
-	parameter SIZE = 32; // 8X8  
-    
-    // Movement speed varaible
-    parameter CLK_DIV = 10000000;
-    reg [31:0] clk_divider = 0;
+    // 31 bit regeister to slow down the movements of the sprite
+    reg [31:0] movement_delay_counter = 0;
     
     // Controller connections
     wire [2:0] btn;
-    wire cw;
-    wire ccw;
-    reg [3:0] face = 1;
-    reg [3:0] speed = 0; // Initialize to zero
-    reg direction = 0;
+    wire cw; // Clockwise
+    wire ccw; // Counterclockwise
     
+    // Movement handeling
+    reg [3:0] face = 1; // Defines the direction the head of the tank is facing
+    reg [3:0] drive = 0; // Indicator whether to drive (or move) the tank with a power level between 2 and 4
+    reg direction = 0; // 1 is forward (in respect to the head/face), 0 is reverse
+    
+    // Bullet/Projectile connections
     wire [9:0] bullet_x, bullet_y;
-
-//    if pixel data 
-//    then rgb_out mono_c    
-
-    // added projectile contolles 
-//    wire [1:0] bullet_dir;
-//    wire active = 1;
-//    reg [2:0] bullet_row;
-//    reg [2:0] bullet_col;
-//    reg [11:0] bullet_img_out;  // New variable for bullet image output
 
     // Instance controller data
     controller controller_unit (.clk(clk), .reset(reset), .pin(ja_pins[4:0]), .buttons(btn), .re_clockwise(cw), .re_counterclock(ccw));
@@ -59,82 +68,42 @@ module player(
     projectile projectile_unit (.clk(clk), .reset(reset), .face(face), .fire(btn[2]), .sprite_x(x_pos), .sprite_y(y_pos), .bullet_x(bullet_x), .bullet_y(bullet_y));
     
     // Draw sprite
-    // Create a counter that cycles through the sprite rom
-    // to print the sprite to the diplay.
-    // This may require two loops, one for the height of
-    // the sprite and another for the width.
-    
+    // Print the sprite depeding on the VGA scan variables and the position of the
+    // sprite.
     always @(posedge clk) begin
-        // Map screen coordinates to sprite row/column
+        // Map screen coordinates to sprite row/column. Shift by two to magnify by 4x.
         sprite_row <= (y_in - (y_pos - SIZE/2)) >> 2; // Map screen y to sprite row
         sprite_col <= (x_in - (x_pos - SIZE/2)) >> 2; // Map screen x to sprite column
       
         // Check if the pixel is within the sprite's bounds and output the pixel data
-        if ((x_in > x_pos - SIZE/2) && (x_in < x_pos + SIZE/2) &&
-            (y_in > y_pos - SIZE/2) && (y_in < y_pos + SIZE/2)) begin
-            image_out <= pixel_data; // Output sprite pixel color
-        end else if ((x_in > bullet_x - SIZE/8) && (x_in < bullet_x + SIZE/8) &&
-            (y_in > bullet_y - SIZE/8) && (y_in < bullet_y + SIZE/8)) begin
-            image_out <= 12'hF00;
-        end else begin
-            image_out <= 12'h000; // Set to black (background)
-        end
+        if ((x_in > x_pos - SIZE/2) && (x_in < x_pos + SIZE/2) && (y_in > y_pos - SIZE/2) && (y_in < y_pos + SIZE/2))
+            // Get the shape of the sprite from ROMs that output a 1 for COLOR and a 0 for blank
+            image_out <= pixel_data? COLOR: BLANK;
+        else if ((x_in > bullet_x - SIZE/10) && (x_in < bullet_x + SIZE/10) && (y_in > bullet_y - SIZE/10) && (y_in < bullet_y + SIZE/10))
+            // Match the color of the bullet to the color of the sprite
+            image_out <= COLOR;
+        else
+            image_out <= BLANK; // Set to blank  
     end
-    
-    
-    
-//     always @(posedge clk) begin
-//    // Default to background (black)
-//    image_out <= 12'h000;  
-//    bullet_img_out <= 12'h000; 
 
-//    sprite_row <= 3'b000;
-//    sprite_col <= 3'b000;
-//    bullet_row <= 2'b00;  // Adjusted for 3x3 bullet
-//    bullet_col <= 2'b00;
-
-    // Player sprite mapping
-//    if ((x_in >= x_pos - SIZE/2) && (x_in < x_pos + SIZE/2) &&
-//        (y_in >= y_pos - SIZE/2) && (y_in < y_pos + SIZE/2)) begin
-//        sprite_row <= (y_in - (y_pos - SIZE/2)) >> 2;
-//        sprite_col <= (x_in - (x_pos - SIZE/2)) >> 2;
-//        image_out <= pixel_data;  
-//    end 
-    // Bullet display
-//    else if (active && (x_in >= bullet_x - 2) && (x_in < bullet_x + 2) &&
-//             (y_in >= bullet_y - 2) && (y_in < bullet_y + 2)) begin
-//        bullet_row <= (y_in - (bullet_y - 2)) >> 1;
-//        bullet_col <= (x_in - (bullet_x - 2)) >> 1;
-//        image_out <= bullet_img_out;  // Show bullet
-//    end
-//end
-
-
-
-    // Properties
-    // This section includes attributes such as current health
-    // position 
-    
-    // Process
-    // Dynamics and collisions go here. Also signal processing
-    // will be handeled here.
-    //  - Movement
-    //  - Collisions
-    //  - Status
-    
-always@(posedge clk, posedge reset)
+    // Physics Process
+    // Sprite movement control and reponse
+    always@(posedge clk, posedge reset)
     begin
         if(reset)
         begin
-            clk_divider <= 0;
+            movement_delay_counter <= 0;
             x_pos <= X_START;
             y_pos <= Y_START;
         end
         else begin
-        
-            clk_divider <= clk_divider + 1; // Fix the speed of the sprite
+            
+            // Roll counter
+            movement_delay_counter <= movement_delay_counter + 1; 
             
             // Get signals from rotary encoder
+            // This update face between 0000 and 1111 for 16 possible
+            // head/face angles.
             if(cw)
                 face <= face + 1;
             else if (ccw)
@@ -143,6 +112,9 @@ always@(posedge clk, posedge reset)
                 face <= face;
             
             // Get signals from buttons
+            // Detect foward or background input and change
+            // direction of travel accordingly 
+            // ACTIVE LOW
             if(btn[0])
                 direction <= 0;
             else if (btn[1])
@@ -150,11 +122,23 @@ always@(posedge clk, posedge reset)
             else
                 direction <= direction;
             
+            // If either foward or backward is pressed, then
+            // initiate drive to begin moving the sprite
+            // ACTIVE LOW
             if(btn[0] && btn[1])
-                speed <= 0;
+                drive <= 0;
             else
-                speed <= 4;
+                drive <= DRIVE_POWER; // Constant drive power (how many pixel to move at a time)
             
+            // ------- TABLE -OF- DIRECTION & POWER -------
+            //DIR - Direction in degrees
+            //BIN - Binary step assignment
+            //HEX - Hex step assignment
+            //DESC- Description of approximate movement
+            //FUNC- Function excecuted to realize movement
+            //FRAME Sprite frame corresponding to step
+            //MOD - Modifications to sprite frame
+            // --------------------------------------------
             //DIR   BIN   HEX  DESC       FUNC  FRAME MOD
             //0     0000  4'h0 RIGHT      ++X   fwd   3R
             //
@@ -181,67 +165,64 @@ always@(posedge clk, posedge reset)
             //330   1111  4'hF DOWN RIGHT +Y++X ttv   2R & FLIP_X
             
             // If recieved a movement signal
-            // When the buttons are not being pressed, speed is zero
+            // When the buttons are not being pressed, drive is zero
             // so that the sprite can rotate in place. Otherwise, 
             // the tank will move forward or backward using the direction
             // variable. Face determines what angle the tank faces on the
             // display.
-            if((btn[0] || btn[1] || cw || ccw) && (clk_divider % CLK_DIV == 0))
+            
+            // This is in essence a sensitivity list
+            if((btn[0] || btn[1] || cw || ccw) && (movement_delay_counter % MOV_DIV == 0))
             begin
                 case (face)
-                    4'b0000: x_pos <= direction? x_pos + speed : x_pos - speed;                     // 0
+                    4'b0000: x_pos <= direction? x_pos + drive : x_pos - drive;                     // 0
                     
-                    4'b0001: begin x_pos <= direction? x_pos + speed : x_pos - speed;               // 30
-                                   y_pos <= direction? y_pos - (speed/2) : y_pos + (speed/2); end
+                    4'b0001: begin x_pos <= direction? x_pos + drive : x_pos - drive;               // 30
+                                   y_pos <= direction? y_pos - (drive/2) : y_pos + (drive/2); end
                                    
-                    4'b0010: begin x_pos <= direction? x_pos + speed : x_pos - speed;               // 45
-                                   y_pos <= direction? y_pos - speed : y_pos + speed; end
+                    4'b0010: begin x_pos <= direction? x_pos + drive : x_pos - drive;               // 45
+                                   y_pos <= direction? y_pos - drive : y_pos + drive; end
                              
-                    4'b0011: begin x_pos <= direction? x_pos + (speed/2) : x_pos - (speed/2);       // 60
-                                   y_pos <= direction? y_pos - speed : y_pos + speed; end
+                    4'b0011: begin x_pos <= direction? x_pos + (drive/2) : x_pos - (drive/2);       // 60
+                                   y_pos <= direction? y_pos - drive : y_pos + drive; end
                                    
-                    4'b0100: y_pos <= direction? y_pos - speed : y_pos + speed;                     // 90
+                    4'b0100: y_pos <= direction? y_pos - drive : y_pos + drive;                     // 90
                     
-                    4'b0101: begin x_pos <= direction? x_pos - (speed/2) : x_pos + (speed/2);               // 120
-                                   y_pos <= direction? y_pos - speed : y_pos + speed; end
+                    4'b0101: begin x_pos <= direction? x_pos - (drive/2) : x_pos + (drive/2);       // 120
+                                   y_pos <= direction? y_pos - drive : y_pos + drive; end
                                    
-                    4'b0110: begin x_pos <= direction? x_pos - speed : x_pos + speed;               // 135
-                                   y_pos <= direction? y_pos - speed : y_pos + speed; end
+                    4'b0110: begin x_pos <= direction? x_pos - drive : x_pos + drive;               // 135
+                                   y_pos <= direction? y_pos - drive : y_pos + drive; end
                                    
-                    4'b0111: begin x_pos <= direction? x_pos - speed : x_pos + speed;       // 150
-                                   y_pos <= direction? y_pos - (speed/2) : y_pos + (speed/2); end
+                    4'b0111: begin x_pos <= direction? x_pos - drive : x_pos + drive;               // 150
+                                   y_pos <= direction? y_pos - (drive/2) : y_pos + (drive/2); end
                                    
-                    4'b1000: x_pos <= direction? x_pos - speed : x_pos + speed;                     // 180
+                    4'b1000: x_pos <= direction? x_pos - drive : x_pos + drive;                     // 180
                     
-                    4'b1001: begin x_pos <= direction? x_pos - speed : x_pos + speed;               // 210
-                                   y_pos <= direction? y_pos + (speed/2) : y_pos - (speed/2); end
+                    4'b1001: begin x_pos <= direction? x_pos - drive : x_pos + drive;               // 210
+                                   y_pos <= direction? y_pos + (drive/2) : y_pos - (drive/2); end
                     
-                    4'b1010: begin x_pos <= direction? x_pos - speed : x_pos + speed;               // 225
-                                   y_pos <= direction? y_pos + speed : y_pos - speed; end
+                    4'b1010: begin x_pos <= direction? x_pos - drive : x_pos + drive;               // 225
+                                   y_pos <= direction? y_pos + drive : y_pos - drive; end
                                    
-                    4'b1011: begin x_pos <= direction? x_pos - (speed/2) : x_pos + (speed/2);       // 240
-                                   y_pos <= direction? y_pos + speed : y_pos - speed; end
+                    4'b1011: begin x_pos <= direction? x_pos - (drive/2) : x_pos + (drive/2);       // 240
+                                   y_pos <= direction? y_pos + drive : y_pos - drive; end
                     
-                    4'b1100: y_pos <= direction? y_pos + speed : y_pos - speed;                     // 270     
+                    4'b1100: y_pos <= direction? y_pos + drive : y_pos - drive;                     // 270     
                     
-                    4'b1101: begin x_pos <= direction? x_pos + (speed/2) : x_pos - (speed/2);       // 300
-                                   y_pos <= direction? y_pos + speed : y_pos - speed; end
+                    4'b1101: begin x_pos <= direction? x_pos + (drive/2) : x_pos - (drive/2);       // 300
+                                   y_pos <= direction? y_pos + drive : y_pos - drive; end
                     
-                    4'b1110: begin x_pos <= direction? x_pos + speed : x_pos - speed;               // 315
-                                   y_pos <= direction? y_pos + speed : y_pos - speed; end
+                    4'b1110: begin x_pos <= direction? x_pos + drive : x_pos - drive;               // 315
+                                   y_pos <= direction? y_pos + drive : y_pos - drive; end
                                    
-                    4'b1111: begin x_pos <= direction? x_pos + speed : x_pos - speed;               // 330
-                                   y_pos <= direction? y_pos + (speed/2) : y_pos - (speed/2); end
+                    4'b1111: begin x_pos <= direction? x_pos + drive : x_pos - drive;               // 330
+                                   y_pos <= direction? y_pos + (drive/2) : y_pos - (drive/2); end
                     
                     default: ; // Do nothing
                 endcase
             end
-            
         end    
-    end
-    
-
-
-    
+    end    
     
 endmodule

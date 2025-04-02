@@ -5,25 +5,25 @@ module p_sprite
 		input wire [2:0] row,
 		input wire [2:0] col,
 		input wire [3:0] sel_sprite,
-		output reg [11:0] pixel_data // 1 or 0
+		output reg pixel_data // 1 or 0
 	);
 	// Declare 12-bit buses for each sprite ROM output
-    wire [11:0] sprite0_data;
-    wire [11:0] sprite30_data;
-    wire [11:0] sprite45_data;
-    wire [11:0] sprite60_data;
-    wire [11:0] sprite90_data;
-    wire [11:0] sprite120_data;
-    wire [11:0] sprite135_data;
-    wire [11:0] sprite150_data;
-    wire [11:0] sprite180_data;
-    wire [11:0] sprite210_data;
-    wire [11:0] sprite225_data;
-    wire [11:0] sprite240_data;
-    wire [11:0] sprite270_data;
-    wire [11:0] sprite300_data;
-    wire [11:0] sprite315_data;
-    wire [11:0] sprite330_data;
+    wire sprite0_data;
+    wire sprite30_data;
+    wire sprite45_data;
+    wire sprite60_data;
+    wire sprite90_data;
+    wire sprite120_data;
+    wire sprite135_data;
+    wire sprite150_data;
+    wire sprite180_data;
+    wire sprite210_data;
+    wire sprite225_data;
+    wire sprite240_data;
+    wire sprite270_data;
+    wire sprite300_data;
+    wire sprite315_data;
+    wire sprite330_data;
 
     // Instantiate each sprite ROM module
 	sprite0_rom  sprite0_rom_unit  (.clk(clk), .row(row), .col(col), .pixel_data(sprite0_data));

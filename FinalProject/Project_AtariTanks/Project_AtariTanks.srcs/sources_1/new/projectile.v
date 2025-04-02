@@ -3,7 +3,7 @@
 module projectile(
     input clk, reset,
     input wire [3:0] face,      // The direction the sprite is facing (4-bit)
-    input wire fire,            // Fire button; signals the bullet to fire 
+    input wire fire,            // Fire button signals the bullet to fire 
     input wire [9:0] sprite_x, sprite_y,  // Player's position
     output reg [9:0] bullet_x, bullet_y // bullets position
 );
@@ -11,28 +11,33 @@ module projectile(
     parameter SCREEN_WIDTH = 640;
     parameter SCREEN_HEIGHT = 480;
     parameter CLK_DIV = 1000000;
-    parameter speed = 4; // Added missing speed definition
+    parameter speed = 8;
     
-    reg fired = 0;
+    reg active = 0;
+//    reg [3:0] last_face;
     reg [31:0] clk_divider = 0;
     
     always @(posedge clk) begin
         if (reset) begin
             clk_divider <= 0;
-            fired <= 0;
+            active <= 0;
+//            last_face <= face;
         end
-        else if (!fire) begin
+        else if (!fire && !active) begin
             // Initialize projectile at player's position
             bullet_x <= sprite_x;
             bullet_y <= sprite_y;
-            fired <= 1;       
+            active <= 1;       
         end 
-        else if (fired) begin
+        else if (active) begin
             
-            clk_divider <= clk_divider + 1; // Fix the speed of the bullet
+            clk_divider <= clk_divider + 1;
+           
+                
 
             if(clk_divider % CLK_DIV == 0) begin
-                case (face)
+                    
+                case (face/*last_face*/)
                     4'b0000: bullet_x <= bullet_x + speed;                     // 0
                     4'b0001: begin bullet_x <= bullet_x + speed;               // 30
                                    bullet_y <= bullet_y - (speed/2); end
@@ -67,9 +72,9 @@ module projectile(
 
             // Deactivate when out of bounds
             if (bullet_x <= 0 || bullet_x >= SCREEN_WIDTH || bullet_y <= 0 || bullet_y >= SCREEN_HEIGHT) begin
-                fired <= 0; // Reset bullet
+                active <= 0; // Reset bullet
             end
-        end // <-- This `end` properly closes the `always` block
-    end // <-- This `end` was missing before `endmodule`
+        end
+    end 
 
 endmodule
