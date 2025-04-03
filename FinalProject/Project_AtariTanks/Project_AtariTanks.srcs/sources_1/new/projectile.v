@@ -14,14 +14,14 @@ module projectile(
     parameter speed = 8;
     
     reg active = 0;
-//    reg [3:0] last_face;
+    reg [3:0] last_face;
     reg [31:0] clk_divider = 0;
     
     always @(posedge clk) begin
         if (reset) begin
             clk_divider <= 0;
             active <= 0;
-//            last_face <= face;
+            last_face <= face;
         end
         else if (!fire && !active) begin
             // Initialize projectile at player's position
@@ -37,7 +37,7 @@ module projectile(
 
             if(clk_divider % CLK_DIV == 0) begin
                     
-                case (face/*last_face*/)
+                case (/*face*/last_face)
                     4'b0000: bullet_x <= bullet_x + speed;                     // 0
                     4'b0001: begin bullet_x <= bullet_x + speed;               // 30
                                    bullet_y <= bullet_y - (speed/2); end
