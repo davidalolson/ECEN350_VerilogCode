@@ -21,13 +21,14 @@ module projectile(
         if (reset) begin
             clk_divider <= 0;
             active <= 0;
-            last_face <= face;
+            last_face <= 0;
         end
         else if (!fire && !active) begin
             // Initialize projectile at player's position
             bullet_x <= sprite_x;
             bullet_y <= sprite_y;
             active <= 1;       
+            last_face <= face;
         end 
         else if (active) begin
             

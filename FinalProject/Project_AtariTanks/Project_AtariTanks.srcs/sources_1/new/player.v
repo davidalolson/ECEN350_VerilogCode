@@ -19,7 +19,10 @@
     parameter MOV_DIV = 10000000,
     
     // How many pixels to move each time
-    parameter DRIVE_POWER = 4 // Leave this alone plz
+    parameter DRIVE_POWER = 4, // Leave this alone plz
+    
+    // Player tag - set the player tag for this spire
+    parameter PLAYER_TAG = 12'hFFF // Set as 1 or 2 + color!!!
     
     ) (
     
@@ -27,7 +30,10 @@
     input wire clk, reset,
     input wire [9:0] x_in, y_in,
     input wire [4:0] ja_pins,
-    
+    input wire hit_flag,
+    // Bullet/Projectile connections
+//    output wire [9:0] in_bullet_x, in_bullet_y,
+//    output wire [9:0] out_bullet_x, out_bullet_y,
     output reg [11:0] image_out
     
     );
@@ -50,13 +56,13 @@
     wire cw; // Clockwise
     wire ccw; // Counterclockwise
     
+    // Bullet/Projectile connections
+    wire [9:0] out_bullet_x, out_bullet_y;
+    
     // Movement handeling
     reg [3:0] face = 1; // Defines the direction the head of the tank is facing
     reg [3:0] drive = 0; // Indicator whether to drive (or move) the tank with a power level between 2 and 4
     reg direction = 0; // 1 is forward (in respect to the head/face), 0 is reverse
-    
-    // Bullet/Projectile connections
-    wire [9:0] bullet_x, bullet_y;
 
     // Instance controller data
     controller controller_unit (.clk(clk), .reset(reset), .pin(ja_pins[4:0]), .buttons(btn), .re_clockwise(cw), .re_counterclock(ccw));
@@ -65,7 +71,7 @@
     p_sprite p_sprite_unit (.clk(clk), .row(sprite_row), .col(sprite_col), .pixel_data(pixel_data), .sel_sprite(face));
     
    // Instantiate projectile
-    projectile projectile_unit (.clk(clk), .reset(reset), .face(face), .fire(btn[2]), .sprite_x(x_pos), .sprite_y(y_pos), .bullet_x(bullet_x), .bullet_y(bullet_y));
+    projectile projectile_unit (.clk(clk), .reset(reset), .face(face), .fire(btn[2]), .sprite_x(x_pos), .sprite_y(y_pos), .bullet_x(out_bullet_x), .bullet_y(out_bullet_y));
     
     // Draw sprite
     // Print the sprite depeding on the VGA scan variables and the position of the
@@ -79,18 +85,23 @@
         if ((x_in > x_pos - SIZE/2) && (x_in < x_pos + SIZE/2) && (y_in > y_pos - SIZE/2) && (y_in < y_pos + SIZE/2))
             // Get the shape of the sprite from ROMs that output a 1 for COLOR and a 0 for blank
             image_out <= pixel_data? COLOR: BLANK;
-        else if ((x_in > bullet_x - SIZE/10) && (x_in < bullet_x + SIZE/10) && (y_in > bullet_y - SIZE/10) && (y_in < bullet_y + SIZE/10))
+                        
+        else if ((x_in > out_bullet_x - SIZE/10) && (x_in < out_bullet_x + SIZE/10) && (y_in > out_bullet_y - SIZE/10) && (y_in < out_bullet_y + SIZE/10))
             // Match the color of the bullet to the color of the sprite
-            image_out <= COLOR;
-        else
+            image_out <= PLAYER_TAG;
+        
+//        else if (((x_in > x_pos - SIZE/2) && (x_in < x_pos + SIZE/2) && (y_in > y_pos - SIZE/2) && (y_in < y_pos + SIZE/2)) && ((x_in > in_bullet_x - SIZE/2) && (x_in < in_bullet_x + SIZE/2) && (y_in > in_bullet_y - SIZE/2) && (y_in < in_bullet_y + SIZE/2))) begin
+            
+        /*end*/ else
             image_out <= BLANK; // Set to blank  
     end
+    
 
     // Physics Process
     // Sprite movement control and reponse
-    always@(posedge clk, posedge reset)
+    always@(posedge clk, posedge reset, posedge hit_flag)
     begin
-        if(reset)
+        if(reset | hit_flag) 
         begin
             movement_delay_counter <= 0;
             x_pos <= X_START;
