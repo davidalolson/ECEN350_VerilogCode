@@ -22,7 +22,8 @@ module atari_tanks_top(
     wire [9:0] x, y;
     wire [11:0] p1_image;
     wire [11:0] p2_image;
-//    wire px_stage;
+    wire px_stage;
+    reg [5:0] stage_row, stage_col;
 
     // Bullet/Projectile connections
     wire [9:0] p1_bullet_x, p1_bullet_y;
@@ -39,8 +40,21 @@ module atari_tanks_top(
     // Instantiate vga_sync
     vga_sync vga_sync_unit (.clk(clk), .reset(reset), .hsync(hsync), .vsync(vsync),
                             .video_on(video_on), .p_tick(), .x(x), .y(y));
+    
+    // Draw stage logic
+    always @(posedge clk or posedge reset) begin
+        if (reset) begin
+            stage_row <= 0;
+            stage_col <= 0;
+        end else begin
+            // Map screen coordinates to stage row/column. Shift by two to magnify by 16x.
+            stage_row <= y >> 4;
+            stage_col <= x >> 4;
+        end 
+    end
+    
     // Instantiate stage
-//    stage_rom stage_rom_unit (.clk(clk), .scan({y,x}>>2), .pixel_data(px_stage));
+    stage_rom stage_rom_unit (.clk(clk), .row(stage_row), .col(stage_col), .pixel_data(px_stage));
                            
     // Instantiate players
     player #(.COLOR(PLAYER1_COLOR), .X_START(P1_X_START_POS), .Y_START(P1_Y_START_POS), .BLANK(BACKGROUND_COLOR), .PLAYER_TAG(PLAYER1_COLOR + 12'h001)) player1_unit (.clk(clk), .reset(reset), .x_in(x), .y_in(y), .ja_pins(JA), .image_out(p1_image), .hit_flag(p1_hit));
@@ -56,7 +70,7 @@ module atari_tanks_top(
             rgb_out <= 12'h000; // Set to black
         else
         begin
-            rgb_out <= (p1_image != BACKGROUND_COLOR)? p1_image : p2_image;
+            rgb_out <= (p1_image != BACKGROUND_COLOR) && !px_stage? p1_image : px_stage? 12'hFFF : p2_image;
             
             collide <= p1_image | p2_image;
             
