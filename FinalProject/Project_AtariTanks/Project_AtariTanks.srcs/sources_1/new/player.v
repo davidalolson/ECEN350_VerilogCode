@@ -125,11 +125,10 @@
             // Detect foward or background input and change
             // direction of travel accordingly 
             // ACTIVE LOW
-            
             if (!btn[1])
-                direction <= wall_flag? 1 : 0;
+                direction <= 1;
             else if (!btn[0])
-                direction <= wall_flag? 0 : 1;
+                direction <= 0;
             else
                 direction <= direction;
             

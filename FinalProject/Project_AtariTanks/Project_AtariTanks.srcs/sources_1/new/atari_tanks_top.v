@@ -104,8 +104,8 @@ module atari_tanks_top(
                 p2_wall <= 1;
             else begin
                 p1_wall <= 0;
-                p2_wall <= 0; 
-            end 
+                p2_wall <= 0;
+            end
         end
     end
     
