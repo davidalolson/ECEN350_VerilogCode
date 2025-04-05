@@ -31,6 +31,7 @@
     input wire [9:0] x_in, y_in,
     input wire [4:0] ja_pins,
     input wire hit_flag,
+    input wire wall_flag,
     // Bullet/Projectile connections
 //    output wire [9:0] in_bullet_x, in_bullet_y,
 //    output wire [9:0] out_bullet_x, out_bullet_y,
@@ -89,10 +90,8 @@
         else if ((x_in > out_bullet_x - SIZE/10) && (x_in < out_bullet_x + SIZE/10) && (y_in > out_bullet_y - SIZE/10) && (y_in < out_bullet_y + SIZE/10))
             // Match the color of the bullet to the color of the sprite
             image_out <= PLAYER_TAG;
-        
-//        else if (((x_in > x_pos - SIZE/2) && (x_in < x_pos + SIZE/2) && (y_in > y_pos - SIZE/2) && (y_in < y_pos + SIZE/2)) && ((x_in > in_bullet_x - SIZE/2) && (x_in < in_bullet_x + SIZE/2) && (y_in > in_bullet_y - SIZE/2) && (y_in < in_bullet_y + SIZE/2))) begin
-            
-        /*end*/ else
+                    
+        else
             image_out <= BLANK; // Set to blank  
     end
     
@@ -126,10 +125,11 @@
             // Detect foward or background input and change
             // direction of travel accordingly 
             // ACTIVE LOW
-            if(btn[0])
-                direction <= 0;
-            else if (btn[1])
-                direction <= 1;
+            
+            if (!btn[1])
+                direction <= wall_flag? 1 : 0;
+            else if (!btn[0])
+                direction <= wall_flag? 0 : 1;
             else
                 direction <= direction;
             
