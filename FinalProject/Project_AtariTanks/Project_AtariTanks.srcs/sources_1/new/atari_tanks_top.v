@@ -14,9 +14,9 @@ module atari_tanks_top(
     parameter PLAYER1_COLOR = 12'hF00;
     parameter PLAYER2_COLOR = 12'h0F0;
     parameter P1_X_START_POS = 40;
-    parameter P1_Y_START_POS = 100;
+    parameter P1_Y_START_POS = 260;
     parameter P2_X_START_POS = 600;
-    parameter P2_Y_START_POS = 380;
+    parameter P2_Y_START_POS = 260;
     
     // This wire is the compilation of the entire display (px by px)
     reg [11:0] rgb_out; // RGB output

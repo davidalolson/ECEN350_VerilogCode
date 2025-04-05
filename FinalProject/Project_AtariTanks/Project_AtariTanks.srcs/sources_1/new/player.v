@@ -22,7 +22,17 @@
     parameter DRIVE_POWER = 4, // Leave this alone plz
     
     // Player tag - set the player tag for this spire
-    parameter PLAYER_TAG = 12'hFFF // Set as 1 or 2 + color!!!
+    parameter PLAYER_TAG = 12'hFFF, // Set as 1 or 2 + color!!!
+    
+    // Respawn positions
+    parameter RESPAWN_X_POS_1 = 450,
+    parameter RESPAWN_Y_POS_1 = 100,
+    parameter RESPAWN_X_POS_2 = 200,
+    parameter RESPAWN_Y_POS_2 = 400,
+    parameter RESPAWN_X_POS_3 = 550,
+    parameter RESPAWN_Y_POS_3 = 400,
+    parameter RESPAWN_X_POS_4 = 40,
+    parameter RESPAWN_Y_POS_4 = 100
     
     ) (
     
@@ -60,6 +70,9 @@
     
     // Bullet/Projectile connections
     wire [9:0] out_bullet_x, out_bullet_y;
+    
+    // Respawn logic
+    reg [1:0] respawn_sel = 0;
     
     // Movement handeling
     reg [3:0] face = 1; // Defines the direction the head of the tank is facing
@@ -101,13 +114,34 @@
     // Sprite movement control and reponse
     always@(posedge clk, posedge reset, posedge hit_flag, posedge wall_flag)
     begin
-        if(reset | hit_flag) 
+        if(reset) 
         begin
             movement_delay_counter <= 0;
             x_pos <= X_START;
             y_pos <= Y_START;
             last_x_pos <= X_START;
             last_y_pos <= Y_START;
+            respawn_sel <= 0;
+        end
+        else if (hit_flag) begin
+            // Respawn after hit
+            case(respawn_sel)
+                2'b00: begin x_pos <= RESPAWN_X_POS_1;
+                             y_pos <= RESPAWN_Y_POS_1; end
+                             
+                2'b01: begin x_pos <= RESPAWN_X_POS_2;
+                             y_pos <= RESPAWN_Y_POS_2; end
+                             
+                2'b10: begin x_pos <= RESPAWN_X_POS_3;
+                             y_pos <= RESPAWN_Y_POS_3; end
+                             
+                2'b11: begin x_pos <= RESPAWN_X_POS_4;
+                             y_pos <= RESPAWN_Y_POS_4; end
+                
+            endcase
+            
+            respawn_sel <= respawn_sel + 1'b1;
+        
         end
         // Detect collision
         else if (wall_flag) begin
