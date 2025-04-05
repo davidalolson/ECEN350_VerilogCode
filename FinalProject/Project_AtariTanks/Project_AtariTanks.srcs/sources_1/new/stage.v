@@ -22,7 +22,7 @@ module stage_rom
 		end
 		
     always@*
-    case({row_reg, col_reg})
+    case({row_reg % 30, col_reg % 40})
         12'b000000000000: pixel_data = 0;
         12'b000000000001: pixel_data = 0;
         12'b000000000010: pixel_data = 0;
@@ -63,7 +63,8 @@ module stage_rom
         12'b000000100101: pixel_data = 0;
         12'b000000100110: pixel_data = 0;
         12'b000000100111: pixel_data = 0;
-        12'b000000101000: pixel_data = 0;
+        12'b000000101000: pixel_data = 0; //40
+        
         12'b000000101001: pixel_data = 0;
         12'b000000101010: pixel_data = 0;
         12'b000000101011: pixel_data = 0;
