@@ -32,9 +32,8 @@
     input wire [4:0] ja_pins,
     input wire hit_flag,
     input wire wall_flag,
-    // Bullet/Projectile connections
-//    output wire [9:0] in_bullet_x, in_bullet_y,
-//    output wire [9:0] out_bullet_x, out_bullet_y,
+    input wire pwall_flag,
+    
     output reg [11:0] image_out
     
     );
@@ -48,6 +47,8 @@
 	// Track sprite position
     reg [9:0] x_pos = X_START; // Get initial position from parameters
 	reg [9:0] y_pos = Y_START;
+	reg [9:0] last_x_pos = X_START; // Used for collision
+	reg [9:0] last_y_pos = Y_START;
 	
     // 31 bit regeister to slow down the movements of the sprite
     reg [31:0] movement_delay_counter = 0;
@@ -72,7 +73,7 @@
     p_sprite p_sprite_unit (.clk(clk), .row(sprite_row), .col(sprite_col), .pixel_data(pixel_data), .sel_sprite(face));
     
    // Instantiate projectile
-    projectile projectile_unit (.clk(clk), .reset(reset), .face(face), .fire(btn[2]), .sprite_x(x_pos), .sprite_y(y_pos), .bullet_x(out_bullet_x), .bullet_y(out_bullet_y));
+    projectile projectile_unit (.clk(clk), .reset(reset), .face(face), .fire(btn[2]), .sprite_x(x_pos), .sprite_y(y_pos), .bullet_x(out_bullet_x), .bullet_y(out_bullet_y), .wall_collide(pwall_flag));
     
     // Draw sprite
     // Print the sprite depeding on the VGA scan variables and the position of the
@@ -98,13 +99,20 @@
 
     // Physics Process
     // Sprite movement control and reponse
-    always@(posedge clk, posedge reset, posedge hit_flag)
+    always@(posedge clk, posedge reset, posedge hit_flag, posedge wall_flag)
     begin
         if(reset | hit_flag) 
         begin
             movement_delay_counter <= 0;
             x_pos <= X_START;
             y_pos <= Y_START;
+            last_x_pos <= X_START;
+            last_y_pos <= Y_START;
+        end
+        // Detect collision
+        else if (wall_flag) begin
+            x_pos <= last_x_pos;
+            y_pos <= last_y_pos;
         end
         else begin
             
@@ -126,9 +134,9 @@
             // direction of travel accordingly 
             // ACTIVE LOW
             if (!btn[1])
-                direction <= 1;
-            else if (!btn[0])
                 direction <= 0;
+            else if (!btn[0])
+                direction <= 1;
             else
                 direction <= direction;
             
@@ -231,6 +239,10 @@
                     
                     default: ; // Do nothing
                 endcase
+                
+            last_x_pos <= x_pos;
+            last_y_pos <= y_pos;
+            
             end
         end    
     end    

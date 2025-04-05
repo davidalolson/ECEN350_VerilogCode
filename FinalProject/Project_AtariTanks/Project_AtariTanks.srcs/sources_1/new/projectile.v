@@ -4,6 +4,7 @@ module projectile(
     input clk, reset,
     input wire [3:0] face,      // The direction the sprite is facing (4-bit)
     input wire fire,            // Fire button signals the bullet to fire 
+    input wire wall_collide,
     input wire [9:0] sprite_x, sprite_y,  // Player's position
     output reg [9:0] bullet_x, bullet_y // bullets position
 );
@@ -17,8 +18,8 @@ module projectile(
     reg [3:0] last_face;
     reg [31:0] clk_divider = 0;
     
-    always @(posedge clk) begin
-        if (reset) begin
+    always @(posedge clk, posedge wall_collide) begin
+        if (reset | wall_collide) begin
             clk_divider <= 0;
             active <= 0;
             last_face <= 0;
@@ -38,7 +39,7 @@ module projectile(
 
             if(clk_divider % CLK_DIV == 0) begin
                     
-                case (/*face*/last_face)
+                case (last_face)
                     4'b0000: bullet_x <= bullet_x + speed;                     // 0
                     4'b0001: begin bullet_x <= bullet_x + speed;               // 30
                                    bullet_y <= bullet_y - (speed/2); end

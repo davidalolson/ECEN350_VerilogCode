@@ -41,6 +41,12 @@ module atari_tanks_top(
     reg p1_wall = 0;
     reg p2_wall = 0;
     
+    // Projectile-wall detection
+    reg [11:0] p1_proj_collide = 12'h000;
+    reg [11:0] p2_proj_collide = 12'h000;
+    reg p1_proj_wall = 0;
+    reg p2_proj_wall = 0;
+    
     // Video status output from vga_sync to tell when to route out rgb signal to DAC
     wire video_on; 
     
@@ -66,9 +72,9 @@ module atari_tanks_top(
     stage_rom stage_rom_unit (.clk(clk), .row(stage_row), .col(stage_col), .pixel_data(px_stage));
                            
     // Instantiate players
-    player #(.COLOR(PLAYER1_COLOR), .X_START(P1_X_START_POS), .Y_START(P1_Y_START_POS), .BLANK(BACKGROUND_COLOR), .PLAYER_TAG(PLAYER1_COLOR + 12'h001)) player1_unit (.clk(clk), .reset(reset), .x_in(x), .y_in(y), .ja_pins(JA), .image_out(p1_image), .hit_flag(p1_hit), .wall_flag(p1_wall));
+    player #(.COLOR(PLAYER1_COLOR), .X_START(P1_X_START_POS), .Y_START(P1_Y_START_POS), .BLANK(BACKGROUND_COLOR), .PLAYER_TAG(PLAYER1_COLOR + 12'h001)) player1_unit (.clk(clk), .reset(reset), .x_in(x), .y_in(y), .ja_pins(JA), .image_out(p1_image), .hit_flag(p1_hit), .wall_flag(p1_wall), .pwall_flag(p1_proj_wall));
     
-    player #(.COLOR(PLAYER2_COLOR), .X_START(P2_X_START_POS), .Y_START(P2_Y_START_POS), .BLANK(BACKGROUND_COLOR), .PLAYER_TAG(PLAYER2_COLOR + 12'h002)) player2_unit (.clk(clk), .reset(reset), .x_in(x), .y_in(y), .ja_pins(JB), .image_out(p2_image), .hit_flag(p2_hit), .wall_flag(p2_wall));
+    player #(.COLOR(PLAYER2_COLOR), .X_START(P2_X_START_POS), .Y_START(P2_Y_START_POS), .BLANK(BACKGROUND_COLOR), .PLAYER_TAG(PLAYER2_COLOR + 12'h002)) player2_unit (.clk(clk), .reset(reset), .x_in(x), .y_in(y), .ja_pins(JB), .image_out(p2_image), .hit_flag(p2_hit), .wall_flag(p2_wall), .pwall_flag(p2_proj_wall));
     
     // Create a single concurrent image based on the compilation of all the image data presented
     
@@ -106,6 +112,20 @@ module atari_tanks_top(
                 p1_wall <= 0;
                 p2_wall <= 0;
             end
+            
+            // Projectile-wall collision
+            p1_proj_collide <= p1_image | (px_stage? STAGE_COLOR : BACKGROUND_COLOR);
+            p2_proj_collide <= p2_image | (px_stage? STAGE_COLOR : BACKGROUND_COLOR);
+            
+            if(p1_proj_collide == ((PLAYER1_COLOR + 12'h001) | STAGE_COLOR))
+                p1_proj_wall <= 1;
+            else if(p2_proj_collide == ((PLAYER2_COLOR + 12'h002) | STAGE_COLOR))
+                p2_proj_wall <= 1;
+            else begin
+                p1_proj_wall <= 0;
+                p2_proj_wall <= 0;
+            end
+            
         end
     end
     
