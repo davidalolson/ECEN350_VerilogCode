@@ -1,0 +1,11 @@
+===================================
+Configuration Memory information
+===================================
+File Format        BIN
+Interface          SPIX1
+Size               16M
+Start Address      0x00000000
+End Address        0x00FFFFFF
+
+Addr1         Addr2         Date                    File(s)
+0x00000000    0x0021728B    Apr  8 11:41:31 2025    C:/Users/david0/Documents/GitHub/ECEN350_VerilogCode/FinalProject/Project_AtariTanks/Project_AtariTanks.runs/impl_1/atari_tanks_top.bit
